@@ -1,5 +1,5 @@
 [package]
-name = "silm-live-server"
+name = "live-server"
 version = "0.1.0"
 edition = "2021"
 description = "多平台直播聚合服务端：Rust + Vue3 网页面板"
@@ -38,6 +38,8 @@ http = "1"
 regex = "1"
 
 [profile.release]
-opt-level = 2
-lto = "thin"
-strip = true
+opt-level = "s"        # 单二进制体积优先
+lto = true
+codegen-units = 1
+strip = "symbols"
+panic = "abort"
