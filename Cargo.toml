@@ -1,0 +1,45 @@
+[package]
+name = "live-server"
+version = "0.1.0"
+edition = "2021"
+description = "多平台直播聚合服务端：Rust + Vue3 网页面板"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+axum = { version = "0.7", features = ["ws"] }
+tower = "0.5"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "stream", "gzip", "brotli", "cookies"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+clap = { version = "4", features = ["derive", "env"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+thiserror = "1"
+anyhow = "1"
+async-trait = "0.1"
+futures-util = "0.3"
+tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"] }
+url = "2"
+percent-encoding = "2"
+base64 = "0.22"
+md-5 = "0.10"
+sha2 = "0.10"
+rand = "0.8"
+brotli = "7"
+flate2 = "1"
+bytes = "1"
+rust-embed = "8"
+mime_guess = "2"
+dashmap = "6"
+rquickjs = "0.14"
+http = "1"
+regex = "1"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = "symbols"
+panic = "abort"

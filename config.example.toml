@@ -1,0 +1,24 @@
+# 复制为 config.toml 后按需修改；命令行参数 / 环境变量优先级更高
+
+[server]
+# 监听地址
+listen = "0.0.0.0:8080"
+# 房间详情缓存秒数（减少重复请求平台）
+cache_ttl = 60
+# 可选：指定外部静态页面目录。留空则使用编译进二进制的页面
+# web_dir = "./frontend/dist"
+
+[auth]
+# 按需开启。开启后所有 /api 与 /ws 需要登录（Cookie 或 Bearer Token）
+enabled = false
+# 开启鉴权时必填
+password = ""
+
+[storage]
+# 关注列表 / 设置存放目录（会自动创建 silm.json）
+data_dir = "./data"
+
+[upstream]
+# 所有对外请求的代理，留空直连，例如 "socks5h://127.0.0.1:1080"
+proxy = ""
+timeout_secs = 20
