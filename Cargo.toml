@@ -1,40 +1,43 @@
 [package]
-name = "lx-server"
+name = "silm-live-server"
 version = "0.1.0"
 edition = "2021"
+description = "多平台直播聚合服务端：Rust + Vue3 网页面板"
 
 [dependencies]
-anyhow = "1"
-axum = { version = "0.8", features = ["multipart"] }
 tokio = { version = "1", features = ["full"] }
-reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls", "blocking"] }
+axum = { version = "0.7", features = ["ws"] }
+tower = "0.5"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "stream", "gzip", "brotli", "cookies"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "0.8"
-rquickjs = { version = "0.9", features = ["full-async", "parallel", "macro"] }
-futures = "0.3"
-base64 = "0.22"
-flate2 = "1"
-md-5 = "0.10"
-sha1 = "0.10"
-hex = "0.4"
-uuid = { version = "1", features = ["v4"] }
+clap = { version = "4", features = ["derive", "env"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-aes = "0.8"
-cbc = { version = "0.1", features = ["alloc", "block-padding"] }
-ecb = { version = "0.1", features = ["alloc", "block-padding"] }
-cipher = { version = "0.4", features = ["alloc", "block-padding"] }
-rsa = "0.9"
-num-bigint-dig = "0.8"
-encoding_rs = "0.8"
+thiserror = "1"
+anyhow = "1"
+async-trait = "0.1"
+futures-util = "0.3"
+tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"] }
+url = "2"
 percent-encoding = "2"
+base64 = "0.22"
+md-5 = "0.10"
+sha2 = "0.10"
 rand = "0.8"
-chrono = "0.4"
+brotli = "7"
+flate2 = "1"
+bytes = "1"
+rust-embed = "8"
+mime_guess = "2"
+dashmap = "6"
+rquickjs = "0.14"
+http = "1"
+regex = "1"
 
 [profile.release]
-opt-level = "s"
-lto = true
-codegen-units = 1
-strip = "symbols"
-panic = "abort"
+opt-level = 2
+lto = "thin"
+strip = true

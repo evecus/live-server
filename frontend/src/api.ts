@@ -11,8 +11,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error('未登录或登录已失效')
   }
   if (!resp.ok) {
-    const body = await resp.json().catch(() => ({ error: resp.statusText }))
-    throw new Error((body as { error?: string }).error || `请求失败 (${resp.status})`)
+    // axum 的参数提取失败会返回纯文本（如 422），不能假设一定是 JSON
+    const text = await resp.text().catch(() => '')
+    let message = ''
+    try {
+      message = (JSON.parse(text) as { error?: string }).error || ''
+    } catch {
+      // 非 JSON 错误体：不把英文技术细节直接抛给用户
+    }
+    throw new Error(message || `请求失败 (HTTP ${resp.status})`)
   }
   return (await resp.json()) as T
 }

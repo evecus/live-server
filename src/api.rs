@@ -145,8 +145,19 @@ async fn follows(State(st): State<Shared>) -> impl IntoResponse {
     Json(json!({ "items": st.store.follows().await }))
 }
 
+/// 前端统一使用驼峰命名（见 types.ts / RoomDetail）；同时保留 snake_case 别名，
+/// 兼容旧客户端与导入数据直接 POST 的场景。
 #[derive(Deserialize)]
-struct AddFollow { platform: String, room_id: String, #[serde(default)] title: String, #[serde(default)] cover: String, #[serde(default)] user_name: String }
+#[serde(rename_all = "camelCase")]
+struct AddFollow {
+    platform: String,
+    #[serde(alias = "room_id")]
+    room_id: String,
+    #[serde(default)] title: String,
+    #[serde(default)] cover: String,
+    #[serde(default, alias = "user_name")]
+    user_name: String,
+}
 
 async fn add_follow(State(st): State<Shared>, Json(b): Json<AddFollow>) -> ApiResult<Json<Value>> {
     if b.room_id.trim().is_empty() { return Err(AppError::bad("房间号不能为空")); }
