@@ -1,7 +1,13 @@
-/target
-/frontend/node_modules
-/data
-/config.toml
-*.tmp
+# Rust 编译产物
+/target/
+/lx-rs
+
+# 运行期自动生成的数据目录
+/data/
+
+# CI 组装目录、日志、压缩包
+/dist/
 *.log
-.DS_Store
+*.tar.gz
+*.sha256
+*.zip
