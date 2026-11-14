@@ -30,9 +30,9 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     let cfg = Config::load(&cli)?;
     let listen = cfg.server.listen.clone();
-    tracing::info!("鉴权：{}", if cfg.auth.enabled { "已开启" } else { "关闭" });
 
     let st = AppState::build(cfg).await?;
+    tracing::info!("鉴权：{}", if st.auth.enabled() { "已开启" } else { "关闭" });
     let app = api::router(st)
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http());

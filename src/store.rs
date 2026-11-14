@@ -36,11 +36,68 @@ pub struct AccountCookies {
     pub kuaishou: String,
 }
 
+/// 面板访问验证：可由设置页运行时开启 / 关闭，改动立即生效并持久化
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(rename_all = "camelCase")]
+#[serde(default, rename_all = "camelCase")]
+pub struct PanelAuthSettings {
+    pub enabled: bool,
+    pub password: String,
+}
+
+/// 弹幕显示设置（前端解释并渲染，服务端只负责持久化，多设备共享）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct DanmakuSettings {
+    pub enabled: bool,
+    /// 字号 px
+    pub font_size: u32,
+    /// 显示区域占播放器高度的百分比
+    pub area: u32,
+    /// 行间距 px
+    pub line_gap: u32,
+    /// 同一轨道相邻弹幕的最小水平间距 px
+    pub item_gap: u32,
+    /// 弹幕横穿屏幕所需秒数（越小越快）
+    pub duration: f32,
+    /// platform | custom | white | rainbow
+    pub color_mode: String,
+    /// colorMode=custom 时使用的颜色
+    pub color: String,
+    /// 文字不透明度 0.2 ~ 1
+    pub opacity: f32,
+    pub bold: bool,
+    /// 描边 / 阴影，提升在浅色画面上的可读性
+    pub stroke: bool,
+    /// 是否显示用户名前缀
+    pub show_user: bool,
+}
+
+impl Default for DanmakuSettings {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            font_size: 22,
+            area: 60,
+            line_gap: 10,
+            item_gap: 64,
+            duration: 9.0,
+            color_mode: "platform".into(),
+            color: "#ffffff".into(),
+            opacity: 1.0,
+            bold: true,
+            stroke: true,
+            show_user: true,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(default, rename_all = "camelCase")]
 pub struct Settings {
-    #[serde(default)]
     pub cookies: AccountCookies,
+    /// None 表示尚未由面板管理，启动时以 config.toml / CLI 为准
+    pub panel_auth: Option<PanelAuthSettings>,
+    pub danmaku: DanmakuSettings,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

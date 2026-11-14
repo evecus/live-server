@@ -9,9 +9,10 @@ cache_ttl = 60
 # web_dir = "./frontend/dist"
 
 [auth]
-# 按需开启。开启后所有 /api 与 /ws 需要登录（Cookie 或 Bearer Token）
+# 初始状态。之后可在「设置 → 面板访问验证」中随时开关 / 改密码，面板设置优先并持久化
+# 开启后所有 /api 与 /ws 需要登录（Cookie 或 Bearer Token）
 enabled = false
-# 开启鉴权时必填
+# 开启鉴权时必填（也可在设置页里填写）
 password = ""
 
 [storage]

@@ -62,9 +62,20 @@ async function follow(it: SearchItem) {
 
 <template>
   <div class="page">
-    <h1 class="page-title">搜索 <small>{{ currentName }}</small></h1>
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">搜索 <small>{{ currentName }}</small></h1>
+        <div class="sub">按关键词或主播名查找直播间，找到后可直接播放或加入关注</div>
+      </div>
+    </div>
 
-    <div class="panel" style="margin-bottom: 16px">
+    <div class="panel" style="margin-bottom: 18px">
+      <div class="panel-head" style="margin-bottom: 14px">
+        <span class="ico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>
+        </span>
+        <h2>找直播间</h2>
+      </div>
       <div class="row">
         <select class="select" style="max-width: 180px" v-model="platform">
           <option v-for="s in searchable" :key="s.id" :value="s.id">{{ s.name }}</option>
@@ -74,7 +85,7 @@ async function follow(it: SearchItem) {
           {{ loading ? '搜索中…' : '搜索' }}
         </button>
       </div>
-      <div class="tabs" style="margin: 12px 0 0">
+      <div class="tabs" style="margin: 13px 0 0">
         <button :class="['btn', 'sm', !anchor ? 'active' : '']" @click="anchor = false">直播间</button>
         <button :class="['btn', 'sm', anchor ? 'active' : '']" @click="anchor = true">主播</button>
       </div>
@@ -84,14 +95,19 @@ async function follow(it: SearchItem) {
     <div v-if="msg" class="tag ok" style="margin-bottom: 14px">{{ msg }}</div>
 
     <div v-if="loading" class="hint">搜索中…</div>
-    <div v-else-if="searched && !items.length" class="panel hint" style="text-align: center; padding: 40px">
-      没有找到结果。抖音搜索建议在「设置」中填写 Cookie。
+    <div v-else-if="searched && !items.length" class="panel empty-state">
+      <div class="bubble">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></svg>
+      </div>
+      <div class="t">没有找到相关结果</div>
+      <div class="hint">换个关键词试试；抖音搜索建议在「设置」中填写 Cookie</div>
     </div>
     <div v-else class="grid">
       <RoomCard
         v-for="(it, i) in items" :key="`${it.roomId}-${i}`"
         :title="it.title || it.userName" :cover="it.cover"
         :user="it.userName || it.roomId" :live="it.liveStatus"
+        :subtitle="currentName"
         @click="open(it)"
       >
         <template #actions>
@@ -101,7 +117,7 @@ async function follow(it: SearchItem) {
       </RoomCard>
     </div>
 
-    <div v-if="items.length" class="row" style="margin-top: 18px; justify-content: center">
+    <div v-if="items.length" class="row" style="margin-top: 20px; justify-content: center">
       <button class="btn" :disabled="page <= 1" @click="doSearch(page - 1)">上一页</button>
       <span class="muted">第 {{ page }} 页</span>
       <button class="btn" :disabled="!hasMore" @click="doSearch(page + 1)">下一页</button>

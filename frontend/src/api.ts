@@ -1,6 +1,8 @@
-import type { Follow, PlayInfo, Quality, RoomDetail, SearchItem, Settings, SiteInfo } from './types'
+import { isDemo, mockRequest } from './mock'
+import { normalizeSettings, type Follow, type PlayInfo, type Quality, type RoomDetail, type SearchItem, type Settings, type SiteInfo } from './types'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  if (isDemo()) return mockRequest<T>(path, init)
   const resp = await fetch(path, {
     credentials: 'same-origin',
     ...init,
@@ -31,6 +33,7 @@ function post<T>(path: string, body: unknown): Promise<T> {
 export const api = {
   authStatus: () => request<{ enabled: boolean; authenticated: boolean }>('/api/auth/status'),
   login: (password: string) => post<{ ok: boolean }>('/api/auth/login', { password }),
+  logout: () => post<{ ok: boolean }>('/api/auth/logout', {}),
 
   sites: () => request<{ sites: SiteInfo[] }>('/api/sites'),
   parse: (text: string) => post<{ platform: string; roomId: string }>('/api/parse', { text }),
@@ -57,7 +60,7 @@ export const api = {
   exportFollows: () => request<unknown>('/api/follows/export'),
   importFollows: (data: unknown) => post<{ imported: number }>('/api/follows/import', data),
 
-  getSettings: () => request<Settings>('/api/settings'),
+  getSettings: async () => normalizeSettings(await request<Partial<Settings>>('/api/settings')),
   setSettings: (s: Settings) => post<{ ok: boolean }>('/api/settings', s),
 }
 

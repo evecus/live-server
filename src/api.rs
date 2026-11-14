@@ -21,7 +21,7 @@ use crate::error::{ApiResult, AppError, IntoApi};
 use crate::http_client::h;
 use crate::models::PlayQuality;
 use crate::state::{RoomCache, Shared};
-use crate::store::Settings;
+use crate::store::{PanelAuthSettings, Settings};
 use crate::util::urlencode;
 
 pub fn router(st: Shared) -> Router {
@@ -29,6 +29,7 @@ pub fn router(st: Shared) -> Router {
         .route("/health", get(health))
         .route("/api/auth/status", get(auth::status))
         .route("/api/auth/login", post(auth::login))
+        .route("/api/auth/logout", post(auth::logout))
         .route("/api/sites", get(sites))
         .route("/api/parse", post(parse_link))
         .route("/api/search", get(search))
@@ -191,9 +192,39 @@ async fn import_follows(State(st): State<Shared>, Json(v): Json<Value>) -> ApiRe
 
 // ---------------- 设置 ----------------
 
-async fn get_settings(State(st): State<Shared>) -> impl IntoResponse { Json(st.store.settings().await) }
+/// 返回设置；访问密码永远不回传，仅返回 hasPassword 供界面显示
+async fn get_settings(State(st): State<Shared>) -> impl IntoResponse {
+    let mut s = st.store.settings().await;
+    match s.panel_auth.as_mut() {
+        Some(pa) => {
+            pa.enabled = st.auth.enabled();
+            pa.password.clear();
+        }
+        None => {
+            s.panel_auth = Some(PanelAuthSettings {
+                enabled: st.auth.enabled(),
+                password: String::new(),
+            });
+        }
+    }
+    let mut v = serde_json::to_value(&s).unwrap_or_else(|_| json!({}));
+    if let Some(obj) = v.get_mut("panelAuth").and_then(|x| x.as_object_mut()) {
+        obj.insert("hasPassword".into(), json!(st.auth.has_password()));
+    }
+    Json(v)
+}
 
-async fn set_settings(State(st): State<Shared>, Json(s): Json<Settings>) -> ApiResult<Json<Value>> {
+async fn set_settings(State(st): State<Shared>, Json(mut s): Json<Settings>) -> ApiResult<Json<Value>> {
+    if let Some(pa) = s.panel_auth.as_mut() {
+        // 密码留空 = 沿用已保存的密码（界面不会回显明文）
+        if pa.password.trim().is_empty() {
+            pa.password = st.auth.password();
+        }
+        if pa.enabled && pa.password.trim().is_empty() {
+            return Err(AppError::bad("开启访问验证前请先设置访问密码"));
+        }
+        st.auth.update(pa.enabled, &pa.password).map_err(AppError::bad)?;
+    }
     st.store.update_settings(s).await.map_err(|e| AppError::internal(e.to_string()))?;
     st.cache.clear();
     Ok(Json(json!({ "ok": true })))

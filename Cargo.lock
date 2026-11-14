@@ -993,6 +993,43 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4744e383959f0db86ede514b809b1c53251889093803c05267acc7d4e7030d70"
 
 [[package]]
+name = "live-server"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "axum",
+ "base64 0.22.1",
+ "brotli 7.0.0",
+ "bytes",
+ "clap",
+ "dashmap",
+ "flate2",
+ "futures-util",
+ "http",
+ "md-5",
+ "mime_guess",
+ "percent-encoding",
+ "rand 0.8.8",
+ "regex",
+ "reqwest",
+ "rquickjs",
+ "rust-embed",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio-tungstenite",
+ "toml",
+ "tower",
+ "tower-http 0.5.2",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+]
+
+[[package]]
 name = "lock_api"
 version = "0.4.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1686,43 +1723,6 @@ checksum = "c4db69cba1110affc0e9f7bcd48bbf87b3f4fc7c61fc9155afd4c469eb3d6c1b"
 dependencies = [
  "errno",
  "libc",
-]
-
-[[package]]
-name = "silm-live-server"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "axum",
- "base64 0.22.1",
- "brotli 7.0.0",
- "bytes",
- "clap",
- "dashmap",
- "flate2",
- "futures-util",
- "http",
- "md-5",
- "mime_guess",
- "percent-encoding",
- "rand 0.8.8",
- "regex",
- "reqwest",
- "rquickjs",
- "rust-embed",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 1.0.69",
- "tokio",
- "tokio-tungstenite",
- "toml",
- "tower",
- "tower-http 0.5.2",
- "tracing",
- "tracing-subscriber",
- "url",
 ]
 
 [[package]]

@@ -21,6 +21,7 @@ const shown = computed(() => {
   return items.value
 })
 const liveCount = computed(() => items.value.filter((f) => f.live).length)
+function siteName(id: string) { return sites.value.find((s) => s.id === id)?.name || id }
 
 async function load() {
   loading.value = true
@@ -43,6 +44,26 @@ async function refresh() {
       } catch { /* 单个失败不影响其他 */ }
     }))
   } finally { refreshing.value = false }
+}
+
+/** 历史关注可能缺失房间标题，静默补全并回写服务端，避免再出现空的「未命名直播间」 */
+async function fillTitles() {
+  const targets = items.value.filter((f) => !f.title).slice(0, 12)
+  if (!targets.length) return
+  await Promise.all(targets.map(async (f) => {
+    try {
+      const { detail } = await api.room(f.platform, f.roomId)
+      const title = detail.title?.trim()
+      if (!title) return
+      f.title = title
+      if (!f.userName) f.userName = detail.userName || ''
+      if (!f.cover) f.cover = detail.cover || ''
+      await api.addFollow({
+        platform: f.platform, roomId: f.roomId,
+        title, cover: f.cover, userName: f.userName,
+      })
+    } catch { /* 平台接口不可用时保持静默 */ }
+  }))
 }
 
 async function add() {
@@ -84,16 +105,25 @@ function open(f: Follow) {
   router.push({ name: 'player', query: { platform: f.platform, room: f.roomId } })
 }
 
-onMounted(async () => { await load(); await refresh() })
+onMounted(async () => { await load(); await refresh(); await fillTitles() })
 </script>
 
 <template>
   <div class="page">
-    <h1 class="page-title">
-      关注 <small>共 {{ items.length }} 个 · {{ liveCount }} 个直播中</small>
-    </h1>
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">关注 <small>共 {{ items.length }} 个 · {{ liveCount }} 个直播中</small></h1>
+        <div class="sub">把常看的直播间收在一处，开播状态可随时刷新</div>
+      </div>
+    </div>
 
-    <div class="panel" style="margin-bottom: 16px">
+    <div class="panel" style="margin-bottom: 18px">
+      <div class="panel-head" style="margin-bottom: 14px">
+        <span class="ico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+        </span>
+        <h2>添加关注</h2>
+      </div>
       <div class="row">
         <select class="select" style="max-width: 170px" v-model="platform">
           <option v-for="s in sites" :key="s.id" :value="s.id">{{ s.name }}</option>
@@ -101,7 +131,7 @@ onMounted(async () => { await load(); await refresh() })
         <input class="input" v-model="input" placeholder="房间号，或直接粘贴分享链接 / 短链" @keyup.enter="add" />
         <button class="btn primary" :disabled="!input.trim() || loading" @click="add">添加关注</button>
       </div>
-      <p class="hint" style="margin: 10px 0 0">
+      <p class="hint" style="margin: 11px 0 0">
         粘贴链接时会自动识别平台；纯房间号请使用左侧选择的平台。数据保存在服务端，多设备打开同一地址即可共享。
       </p>
     </div>
@@ -109,21 +139,26 @@ onMounted(async () => { await load(); await refresh() })
     <div v-if="err" class="error" style="margin-bottom: 14px">{{ err }}</div>
 
     <div class="tabs">
-      <button :class="['btn', 'sm', filter === 'all' ? 'active' : '']" @click="filter = 'all'">全部</button>
-      <button :class="['btn', 'sm', filter === 'live' ? 'active' : '']" @click="filter = 'live'">直播中</button>
-      <button :class="['btn', 'sm', filter === 'off' ? 'active' : '']" @click="filter = 'off'">未开播</button>
+      <button :class="['btn', 'sm', filter === 'all' ? 'active' : '']" @click="filter = 'all'">全部 <span class="pill-count">{{ items.length }}</span></button>
+      <button :class="['btn', 'sm', filter === 'live' ? 'active' : '']" @click="filter = 'live'">直播中 <span class="pill-count">{{ liveCount }}</span></button>
+      <button :class="['btn', 'sm', filter === 'off' ? 'active' : '']" @click="filter = 'off'">未开播 <span class="pill-count">{{ items.length - liveCount }}</span></button>
       <div class="spacer"></div>
       <button class="btn sm" :disabled="refreshing" @click="refresh">{{ refreshing ? '刷新中…' : '刷新开播状态' }}</button>
     </div>
 
     <div v-if="loading" class="hint">加载中…</div>
-    <div v-else-if="!shown.length" class="panel hint" style="text-align: center; padding: 40px">
-      暂无关注。可在上方添加，或到「搜索」页寻找直播间。
+    <div v-else-if="!shown.length" class="panel empty-state">
+      <div class="bubble">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13.5" rx="2.5" /><path d="M10 9.5l5 2.8-5 2.8z" fill="currentColor" stroke="none" /></svg>
+      </div>
+      <div class="t">{{ filter === 'all' ? '还没有关注的直播间' : '这个分类下暂时没有直播间' }}</div>
+      <div class="hint">在上方添加房间号，或到「搜索」页发现新主播</div>
     </div>
     <div v-else class="grid">
       <RoomCard
         v-for="f in shown" :key="f.id"
         :title="f.title" :cover="f.cover" :user="f.userName" :live="f.live"
+        :subtitle="siteName(f.platform)" :top="f.top"
         @click="open(f)"
       >
         <template #actions>
